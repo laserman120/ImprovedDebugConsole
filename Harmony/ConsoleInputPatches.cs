@@ -17,8 +17,6 @@ namespace ImprovedDebugConsole.Harmony
         {
             if (string.IsNullOrWhiteSpace(consoleInput)) return;
 
-            RLog.Msg($"[ConsoleFloatSanitizerPatch] Original input: {consoleInput}");
-
             var partsList = new List<string>();
             bool inQuotes = false;
             string currentPart = "";
@@ -50,7 +48,6 @@ namespace ImprovedDebugConsole.Harmony
                 {
                     if (signature[i].Name == AdvancedConsoleEngine.ArgFloat)
                     {
-                        RLog.Msg($"[ConsoleFloatSanitizerPatch] Found float argument at position {i + 1}: {parts[i + 1]}");
                         if (parts[i + 1].Contains("."))
                         {
                             parts[i + 1] = parts[i + 1].Replace('.', ',');
@@ -61,7 +58,6 @@ namespace ImprovedDebugConsole.Harmony
 
                 if (modified)
                 {
-                    RLog.Msg($"[ConsoleFloatSanitizerPatch] Modified input: {string.Join(" ", parts)}");
                     consoleInput = string.Join(" ", parts);
                 }
             }
