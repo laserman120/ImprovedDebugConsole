@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/ToniMacaroni/RedLoader/main/MetadataSchema.json",
   "id": "ImprovedDebugConsole",
   "author": "GLaD0S",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A mod to improve the vanilla debug console",
   "gameVersion": "1.0.0",
   "type": "Mod",

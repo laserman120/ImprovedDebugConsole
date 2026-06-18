@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TheForest;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace ImprovedDebugConsole.Harmony
 {
-    [HarmonyPatch(typeof(TheForest.DebugConsole), "CommandAutoComplete")]
+    [HarmonyPatch(typeof(TheForest.DebugConsole), nameof(DebugConsole.CommandAutoComplete))]
     internal class TabCompletionPatches
     {
         public static bool Prefix(TheForest.DebugConsole __instance)
@@ -64,7 +65,7 @@ namespace ImprovedDebugConsole.Harmony
         }
     }
 
-    [HarmonyPatch(typeof(TheForest.DebugConsole), "BuildCommandShortList")]
+    [HarmonyPatch(typeof(TheForest.DebugConsole), nameof(DebugConsole.BuildCommandShortList))]
     internal class InputPatches
     {
         public static void Postfix(TheForest.DebugConsole __instance)

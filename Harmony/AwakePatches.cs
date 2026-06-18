@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TheForest;
 using TMPro;
 using UnityEngine;
 
 namespace ImprovedDebugConsole.Harmony
 {
-    [HarmonyPatch(typeof(TheForest.DebugConsole), "Awake")]
+    [HarmonyPatch(typeof(TheForest.DebugConsole), nameof(DebugConsole.Awake))]
     internal class ConsoleUISetupPatches
     {
         public static void Postfix(TheForest.DebugConsole __instance)

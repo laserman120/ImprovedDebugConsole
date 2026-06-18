@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TheForest;
 
 namespace ImprovedDebugConsole.Harmony
 {
-    [HarmonyPatch(typeof(TheForest.ConsoleInputAutoCompleteColumn), "AtCapacity")]
+    [HarmonyPatch(typeof(TheForest.ConsoleInputAutoCompleteColumn), nameof(ConsoleInputAutoCompleteColumn.AtCapacity))]
     internal class ColumnCapacityPatch
     {
         public static void Postfix(TheForest.ConsoleInputAutoCompleteColumn __instance, ref bool __result)

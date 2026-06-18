@@ -43,6 +43,8 @@ namespace ImprovedDebugConsole.Managers
         public const string ArgForce = "Force";
         public const string ArgLifetime = "Lifetime";
         public const string ArgDamage = "Damage";
+        public const string ArgGoto = "GotoPoint/Coordinates";
+        public const string ArgCloudProfile = "CloudProfile";
 
         public struct CommandArg
         {
@@ -62,6 +64,7 @@ namespace ImprovedDebugConsole.Managers
         public static List<string> PrefabSuggestions = new();
         public static List<string> CharacterSuggestions = new();
         public static List<string> WorldEventSuggestions = new();
+        public static List<string> GotoSuggestions = new();
         public static List<string> WeatherSuggestions = new() { "light", "medium", "heavy", "cloud", "sunny", "clear", "stop", "none", "block" };
         public static List<string> StatSuggestions = new() { "Health", "Stamina", "Energy", "Hunger", "Thirst", "Fullness", "Sanity", "BatteryCharge", "Rest" };
         public static List<string> OnOffSuggestions = new() { "on", "off" };
@@ -75,6 +78,7 @@ namespace ImprovedDebugConsole.Managers
         public static List<string> AnimShowSuggestions = new() { "states", "clips", "on", "off" };
         public static List<string> RadarTypeSuggestions = new() { "on", "type", "verbose", "fish", "off" };
         public static List<string> WindIntensitySuggestions = new() { "off", "stop", "0.1", "0.5", "1.0" };
+        public static List<string> CloudProfiles = new() { "random", "idle", "growingclouds", "reducingclouds", "raining" };
 
         public static void InitializeRegistry()
         {
@@ -100,6 +104,8 @@ namespace ImprovedDebugConsole.Managers
             RegisterArgumentPool(ArgAnimShowType, AnimShowSuggestions);
             RegisterArgumentPool(ArgRadarType, RadarTypeSuggestions);
             RegisterArgumentPool(ArgWindIntensity, WindIntensitySuggestions);
+            RegisterArgumentPool(ArgGoto, GotoSuggestions);
+            RegisterArgumentPool(ArgCloudProfile, CloudProfiles);
 
 
             RegisterCommand("additem", new[] { ArgItem }, "Adds the specified item to the player's inventory up to its max stack amount.");
@@ -168,7 +174,7 @@ namespace ImprovedDebugConsole.Managers
             RegisterCommand("virginiaincutscenes", new[] { ArgOnOff }, "Forces Virginia to always appear in end-game cutscenes.");
             RegisterCommand("robbyincutscenes", new[] { ArgOnOff }, "Forces Robby to always appear in end-game cutscenes.");
             RegisterCommand("robbycarry", new[] { ArgItem }, "Makes Robby instantly carry the specified item type.");
-            RegisterCommand("creepyvillage", new string[0], "Triggers a Creepy takeover of the closest cannibal village.");
+            RegisterCommand("creepyvillage", new string[0], "Triggers a Creepy takeover of the closest cannibal village. This cannot be undone!");
             RegisterCommand("clearmidactionflag", new string[0], "Clears the player's mid-action flag.");
             RegisterCommand("resetheldanim", new string[0], "Re-applies animation variables for items in both hands.");
             RegisterCommand("forceplayerexpression", new[] { ArgString }, "Forces the player's facial expression to the specified one.");
@@ -267,17 +273,17 @@ namespace ImprovedDebugConsole.Managers
             RegisterCommand("setcurrentday", new[] { ArgInt }, "Sets the current in-game day number.");
             RegisterCommand("season", new[] { ArgSeason }, "Locks the current season to the specified one.");
             RegisterCommand("unlockseason", new string[0], "Unlocks the season so it can change naturally again.");
-            RegisterCommand("forcecloud", new[] { ArgString, Optional(ArgFloat) }, "Forces a specific cloud profile and optionally sets cloud cover.");
-            RegisterCommand("forcecloudprofile", new[] { ArgString }, "Switches to a specific cloud profile.");
+            RegisterCommand("forcecloud", new[] { ArgCloudProfile, Optional(ArgFloat) }, "Forces a specific cloud profile and optionally sets cloud cover.");
+            RegisterCommand("forcecloudprofile", new[] { ArgCloudProfile }, "Switches to a specific cloud profile.");
             RegisterCommand("cloudenable", new[] { ArgOnOff }, "Enables or disables cloud rendering entirely.");
             RegisterCommand("cloudshadowsenable", new[] { ArgOnOff }, "Enables or disables cloud shadow rendering.");
             RegisterCommand("cloudfactor", new[] { ArgFloat }, "Locks the storm/cloud cover factor to a specific amount.");
             RegisterCommand("setwindintensity", new[] { ArgWindIntensity }, "Locks wind intensity to a float value, or use 'off'/'stop' to return to normal dynamic wind.");
             RegisterCommand("speedyrun", new[] { ArgString }, "Adds a speed multiplier to the player's run and swim speeds.");
             RegisterCommand("superjump", new[] { ArgString }, "Sets a super jump multiplier on the player.");
-            RegisterCommand("goto", new[] { ArgString }, "Teleports the player to a named goto point or specific coordinates.");
+            RegisterCommand("goto", new[] { ArgGoto }, "Teleports the player to a named goto point or specific coordinates.");
             RegisterCommand("gotocoords", new[] { ArgString }, "Teleports the player to exact world coordinates.");
-            RegisterCommand("gotoforce", new[] { ArgString }, "Force-teleports the player, skipping landing checks.");
+            RegisterCommand("gotoforce", new[] { ArgGoto }, "Force-teleports the player, skipping landing checks.");
             RegisterCommand("gototag", new[] { ArgTag }, "Teleports the player to a GameObject with the given tag.");
             RegisterCommand("follow", new[] { ArgGameObject }, "Makes the player character follow the specified target.");
             RegisterCommand("followstop", new string[0], "Stops the player from following and makes them visible again.");
@@ -612,6 +618,19 @@ namespace ImprovedDebugConsole.Managers
                     {
                         WorldEventSuggestions.Add(eventDef.name);
                     };
+                }
+
+                // Goto Points
+                foreach (UnityEngine.GameObject go in UnityEngine.Object.FindObjectsOfType<UnityEngine.GameObject>(true))
+                {
+                    if (go.name.EndsWith("Goto", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string pointName = go.name.Substring(0, go.name.Length - 4);
+                        if (!GotoSuggestions.Contains(pointName))
+                        {
+                            GotoSuggestions.Add(pointName);
+                        }
+                    }
                 }
             }
             catch (Exception) { }
