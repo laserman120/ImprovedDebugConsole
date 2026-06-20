@@ -1,4 +1,5 @@
-﻿using RedLoader;
+﻿using Il2CppSystem.Runtime.Serialization.Formatters.Binary;
+using RedLoader;
 using Sons.Ai.Vail;
 using Sons.Characters;
 using Sons.Items.Core;
@@ -14,6 +15,7 @@ namespace ImprovedDebugConsole.Managers
     public static class AdvancedConsoleEngine
     {
         public const string ArgOnOff = "On/Off";
+        public const string ArgTrueFalse = "True/False";
         public const string ArgItem = "ItemName/ID";
         public const string ArgCharacter = "CharacterType";
         public const string ArgPrefab = "PrefabName";
@@ -23,6 +25,7 @@ namespace ImprovedDebugConsole.Managers
         public const string ArgCount = "Count";
         public const string ArgAmount = "Amount";
         public const string ArgFloat = "Float";
+        public const string ArgFloatOff = "Float/Off";
         public const string ArgDistance = "Distance";
         public const string ArgInt = "Integer";
         public const string ArgString = "String";
@@ -43,8 +46,11 @@ namespace ImprovedDebugConsole.Managers
         public const string ArgForce = "Force";
         public const string ArgLifetime = "Lifetime";
         public const string ArgDamage = "Damage";
-        public const string ArgGoto = "GotoPoint/Coordinates";
+        public const string ArgGoto = "GotoPoint/Coordinates/GameObject";
         public const string ArgCloudProfile = "CloudProfile";
+        public const string ArgLodType = "LODType";
+        public const string ArgPostProcessing = "PostProcessType";
+        public const string ArgWorldObjectState = "WorldObjectState";
 
         public struct CommandArg
         {
@@ -66,8 +72,9 @@ namespace ImprovedDebugConsole.Managers
         public static List<string> WorldEventSuggestions = new();
         public static List<string> GotoSuggestions = new();
         public static List<string> WeatherSuggestions = new() { "light", "medium", "heavy", "cloud", "sunny", "clear", "stop", "none", "block" };
-        public static List<string> StatSuggestions = new() { "Health", "Stamina", "Energy", "Hunger", "Thirst", "Fullness", "Sanity", "BatteryCharge", "Rest" };
+        public static List<string> StatSuggestions = new() { "Full", "Health", "Stamina", "Energy", "Hunger", "Thirst", "Fullness", "Sanity", "BatteryCharge", "Rest" };
         public static List<string> OnOffSuggestions = new() { "on", "off" };
+        public static List<string> TrueFalseSuggestions = new() { "true", "false" };
         public static List<string> SeasonSuggestions = new() { "spring", "summer", "autumn", "fall", "winter", "snow" };
         public static List<string> DifficultySuggestions = new() { "peaceful", "normal", "hard", "hardsurvival" };
         public static List<string> GameModeSuggestions = new() { "standard", "mod", "creative" };
@@ -77,8 +84,15 @@ namespace ImprovedDebugConsole.Managers
         public static List<string> SpeakerModeSuggestions = new() { "def", "stereo", "2", "dolby", "5.1", "7.1", "atmos", "7.1.4" };
         public static List<string> AnimShowSuggestions = new() { "states", "clips", "on", "off" };
         public static List<string> RadarTypeSuggestions = new() { "on", "type", "verbose", "fish", "off" };
-        public static List<string> WindIntensitySuggestions = new() { "off", "stop", "0.1", "0.5", "1.0" };
+        public static List<string> WindIntensitySuggestions = new() { "off", "stop", "0,1", "0,5", "1,0" };
+        public static List<string> MultiplierOff = new() { "off", "0,5", "2,0" };
         public static List<string> CloudProfiles = new() { "random", "idle", "growingclouds", "reducingclouds", "raining" };
+        public static List<string> LodSettingsTypeSuggestions = new() { "Trees", "SmallTree", "Bush", "SmallBush", "Rocks", "SmallRocks", "Plant", "Moss", "PickUps", "BuiltStructure", "CaveEntrance", "MediumCave", "SmallCave", "Cliffs" };
+        public static List<string> PostProcessingSuggestions = new() { "ContactShadows", "MicroShadowing", "ScreenSpaceReflection", "ChromaticAberration", "ScreenSpaceAmbientOcclusion" };
+        public static List<string> WorldObjectStateSuggestions = new() { "Default", "Cleared", "Damaged", "Destroyed", "Burning" };
+
+        public static List<string> FloatTypes = new() { ArgFloat, ArgDistance, ArgDamage, ArgLifetime, ArgForce, ArgWindIntensity, ArgFloatOff };
+
 
         public static void InitializeRegistry()
         {
@@ -91,6 +105,7 @@ namespace ImprovedDebugConsole.Managers
             RegisterArgumentPool(ArgWeather, WeatherSuggestions);
             RegisterArgumentPool(ArgStat, StatSuggestions);
             RegisterArgumentPool(ArgOnOff, OnOffSuggestions);
+            RegisterArgumentPool(ArgTrueFalse, TrueFalseSuggestions);
             RegisterArgumentPool(ArgSeason, SeasonSuggestions);
             RegisterArgumentPool(ArgDifficulty, DifficultySuggestions);
             RegisterArgumentPool(ArgGameMode, GameModeSuggestions);
@@ -106,6 +121,10 @@ namespace ImprovedDebugConsole.Managers
             RegisterArgumentPool(ArgWindIntensity, WindIntensitySuggestions);
             RegisterArgumentPool(ArgGoto, GotoSuggestions);
             RegisterArgumentPool(ArgCloudProfile, CloudProfiles);
+            RegisterArgumentPool(ArgLodType, LodSettingsTypeSuggestions);
+            RegisterArgumentPool(ArgFloatOff, MultiplierOff);
+            RegisterArgumentPool(ArgPostProcessing, PostProcessingSuggestions);
+            RegisterArgumentPool(ArgWorldObjectState, WorldObjectStateSuggestions);
 
 
             RegisterCommand("additem", new[] { ArgItem }, "Adds the specified item to the player's inventory up to its max stack amount.");
@@ -309,13 +328,13 @@ namespace ImprovedDebugConsole.Managers
             RegisterCommand("mipmapstreambudget", new[] { ArgFloat }, "Sets memory budget for texture streaming and flushes mipmaps.");
             RegisterCommand("mipmapstreamingdiscard", new[] { ArgOnOff }, "Toggles discarding unused streaming mip textures.");
             RegisterCommand("targetframerate", new[] { ArgInt }, "Sets the target frame rate.");
-            RegisterCommand("billboardenabled", new[] { ArgString, ArgOnOff }, "Enables or disables a specific billboard type.");
+            RegisterCommand("billboardenabled", new[] { ArgLodType, ArgOnOff }, "Enables or disables a specific billboard type.");
             RegisterCommand("billboardignorechanges", new[] { ArgOnOff }, "Toggles whether billboard changes are ignored.");
             RegisterCommand("anisoenabled", new[] { ArgOnOff }, "Enables or disables anisotropic filtering.");
             RegisterCommand("anisominmax", new[] { ArgFloat, ArgFloat }, "Sets global anisotropic filtering min and max limits.");
             RegisterCommand("loddebugbillboards", new[] { ArgOnOff }, "Toggles shader keyword to visualize billboard LOD transitions.");
             RegisterCommand("loddebugmaterials", new[] { ArgOnOff }, "Toggles LOD debug material coloring on world object locators.");
-            RegisterCommand("loddebugranges", new[] { ArgString }, "Toggles LOD debug range visualization for a given LOD type.");
+            RegisterCommand("loddebugranges", new[] { ArgLodType }, "Toggles LOD debug range visualization for a given LOD type.");
             RegisterCommand("lodforce3ddistance", new[] { ArgOnOff }, "Forces the LOD system to use 3D distance calculations.");
             RegisterCommand("lodforce2ddistance", new[] { ArgOnOff }, "Forces the LOD system to use 2D distance calculations.");
             RegisterCommand("dynamicresolutioncycletest", new[] { ArgOnOff }, "Runs a dynamic resolution stress test.");
@@ -327,9 +346,9 @@ namespace ImprovedDebugConsole.Managers
             RegisterCommand("showmeshmaterialnames", new[] { ArgOnOff }, "Displays material name and shader name alongside mesh names.");
             RegisterCommand("showactivelights", new[] { ArgOnOff }, "Overlays the names of all enabled Light components.");
             RegisterCommand("showtriggercollision", new[] { ArgOnOff }, "Includes trigger colliders in the collision overlay display.");
-            RegisterCommand("showworldobjects", new[] { ArgFloat, Optional(ArgString) }, "Toggles world object debug drawing within distance.");
+            RegisterCommand("showworldobjects", new[] { ArgInt, Optional(ArgString) }, "Toggles world object debug drawing within distance.");
             RegisterCommand("showobjectlocation", new[] { ArgGameObject }, "Tracks and displays an in-world label pointing to the specified GameObject.");
-            RegisterCommand("showstimuli", new[] { ArgFloat, Optional(ArgString) }, "Overlays nearby AI Stimuli positions within distance.");
+            RegisterCommand("showstimuli", new[] { ArgInt, Optional(ArgString) }, "Overlays nearby AI Stimuli positions within distance.");
             RegisterCommand("slapchop", new[] { ArgOnOff }, "Enables one-hit tree felling.");
             RegisterCommand("regrowalltrees", new string[0], "Forces all trees in the world to regrow to their initial state.");
             RegisterCommand("restoreallworldlocators", new string[0], "Clears all world object locator states to default.");
@@ -345,7 +364,7 @@ namespace ImprovedDebugConsole.Managers
             RegisterCommand("replaceshader", new[] { ArgString, ArgString }, "Replaces all materials using the source shader with the target shader.");
             RegisterCommand("removeshader", new[] { ArgString }, "Replaces all materials with a default shader and random tints.");
             RegisterCommand("applydefaultmaterials", new[] { ArgOnOff }, "Replaces all renderer shaders with a default lit material and random tint.");
-            RegisterCommand("postprocessingcomponent", new[] { ArgString, ArgOnOff }, "Enables or disables a named post-processing volume component.");
+            RegisterCommand("postprocessingcomponent", new[] { ArgPostProcessing, ArgOnOff }, "Enables or disables a named post-processing volume component.");
             RegisterCommand("exposuresetspeed", new[] { ArgString }, "Overrides the exposure adaptation speed on all Volumes.");
             RegisterCommand("physicsupdatetime", new[] { ArgString }, "Adjusts or resets the physics fixed-timestep.");
             RegisterCommand("gravity", new[] { ArgString }, "Overrides global gravity Y-component.");
@@ -391,7 +410,7 @@ namespace ImprovedDebugConsole.Managers
             RegisterCommand("showdebugzones", new[] { ArgOnOff }, "Creates and shows zone cell visualizations.");
             RegisterCommand("gotozone", new[] { ArgString }, "Teleports the player to the center of the specified zone cell.");
             RegisterCommand("worldgroupid", new[] { ArgString, Optional(ArgOnOff) }, "Toggles or sets a specific world group ID.");
-            RegisterCommand("setworldobjectstaterange", new[] { ArgDistance, ArgString }, "Applies a specific world object state to objects within range.");
+            RegisterCommand("setworldobjectstaterange", new[] { ArgDistance, ArgWorldObjectState }, "Applies a specific world object state to objects within range.");
             RegisterCommand("resetinputaxes", new string[0], "Resets all input axes.");
             RegisterCommand("rumbetest", new[] { ArgString }, "Tests gamepad rumble with the specified parameters.");
             RegisterCommand("astar", new[] { ArgOnOff }, "Enables or disables the A* pathfinding component.");
@@ -443,7 +462,7 @@ namespace ImprovedDebugConsole.Managers
             RegisterCommand("toggleGrabsFaceDebug", new[] { ArgOnOff }, "Toggles visual debug display of blueprint faces in GRABS.");
             RegisterCommand("AddPrefab", new[] { ArgPrefab, Optional(ArgCount) }, "Spawns one or more prefab instances near the player.");
             RegisterCommand("grabsgeneratebuilt", new[] { ArgOnOff }, "Instantly generates all GRABS blueprints as built.");
-            RegisterCommand("SpawnWorldObject", new[] { ArgString }, "Creates a WorldObjectLocator at raycasted terrain position.");
+            RegisterCommand("SpawnWorldObject", new[] { ArgLodType }, "Creates a WorldObjectLocator at raycasted terrain position.");
             RegisterCommand("WorldObjectDisableAll", new string[0], "Disables all world object groups immediately.");
             RegisterCommand("WorldObjectEnableAll", new string[0], "Enables all world object groups immediately.");
             RegisterCommand("vitalsShowDebug", new[] { ArgOnOff }, "Toggles visibility of the vitals debug group overlay.");
@@ -470,7 +489,9 @@ namespace ImprovedDebugConsole.Managers
             RegisterCommand("GainStrength", new[] { ArgInt, Optional(ArgFloat) }, "Grants the player additional strength points, or optionally over time.");
             RegisterCommand("BuffStats", new[] { Optional(ArgStat) }, "Applies a temporary stat buff for fullness, hydration, and rest.");
             RegisterCommand("LightningHitTreeChance", new[] { ArgFloat }, "Sets the probability that lightning will strike a tree.");
-            RegisterCommand("LightningHitTreeMustBeInfrontPlayer", new[] { ArgOnOff }, "Restricts lightning strikes to trees in front of the player.");
+            RegisterCommand("LightningHitTreeMustBeInfrontPlayer", new[] { ArgTrueFalse }, "Restricts lightning strikes to trees in front of the player.");
+
+            CustomCommandManager.RegisterCommands();
         }
 
         public static void RegisterArgumentPool(string argTypeName, List<string> poolData)

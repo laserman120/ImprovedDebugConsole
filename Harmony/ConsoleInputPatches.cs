@@ -46,7 +46,7 @@ namespace ImprovedDebugConsole.Harmony
 
                 for (int i = 0; i < signature.Length && (i + 1) < parts.Length; i++)
                 {
-                    if (signature[i].Name == AdvancedConsoleEngine.ArgFloat)
+                    if (AdvancedConsoleEngine.FloatTypes.Contains(signature[i].Name))
                     {
                         if (parts[i + 1].Contains("."))
                         {

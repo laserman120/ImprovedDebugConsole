@@ -26,6 +26,7 @@ public class ImprovedDebugConsole : SonsMod
     protected override void OnGameStart()
     {
         AdvancedConsoleEngine.IndexGameDatabases();
+        GameCommands.RegisterFromType(typeof(CustomCommandManager));
     }
 
     public void RegisterAdvancedCommand(string commandName, string description, string[] args, Dictionary<string, string[]> customLists, bool logging)
